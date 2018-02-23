@@ -152,4 +152,19 @@ def getProductUrl(mediaId, productId):
   log("item[\"url\"]: %s" % item["url"])
   return item
   
-  
+def update(name, location, crash=None):
+  import time
+  import ga
+  lu = settings.last_update
+  day = time.strftime("%d")
+  if lu == "" or lu != day:
+    settings.last_update = day
+    p = {}
+    p['an'] = get_addon_name()
+    p['av'] = get_addon_version()
+    p['ec'] = 'Addon actions'
+    p['ea'] = name
+    p['ev'] = '1'
+    p['ul'] = xbmc.getLanguage()
+    p['cd'] = location
+    ga.ga('UA-79422131-13').update(p, crash)  

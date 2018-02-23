@@ -46,6 +46,7 @@ def show_sections():
   url = make_url({"action":"show_live_sport"})
   li = xbmcgui.ListItem("Спорт - на живо")
   xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
+  update('browse', 'Categories')
 
 def show_channels():
   products = sectionProducts(20377)
@@ -96,5 +97,5 @@ elif action == 'show_live_sport':
 	show_live_sport()
 elif action == 'show_product':
 	show_product(mediaId, productId)
-	
+
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
