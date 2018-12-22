@@ -39,37 +39,35 @@ def show_sections():
       else:
         return
   
-  url = make_url({"action":"show_channels"})
-  li = xbmcgui.ListItem("ТВ Канали")
-  xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
+  id = 1
+  batch = JsonBatch()
+  rpc = JsonRpc(id)
+  params = {"session": settings.session, "chargingType": "SP" }
+  batch.append( rpc.sections(params) )
+  batch.execute()
+  items = batch.get_result_by_id(id)['list']
   
-  url = make_url({"action":"show_live_sport"})
-  li = xbmcgui.ListItem("Спорт - на живо")
-  xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
+  for item in items:
+    url = make_url({"action":"show_section", "sectionId": item["sectionId"]})
+    name = '%s (%s)' % (item['title'], item.get('numOfProducts'))
+    li = xbmcgui.ListItem(name)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
+
   update('browse', 'Categories')
 
-def show_channels():
-  products = sectionProducts(20377)
-  products += sectionProducts(20373)
-  
+def show_section(sectionId):
+  products = sectionProducts(sectionId)  
   for product in products:
     url = make_url({"action":"show_product", "productId":product["productId"], "mediaId":product["mediaId"]})
     li = xbmcgui.ListItem(product["title"], iconImage=product["logo"], thumbnailImage=product["logo"])
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
-
-def show_live_sport():
-  products = sectionProducts(20408)
-  
-  for product in products:
-    url = make_url({"action":"show_product", "productId":product["productId"], "mediaId":product["mediaId"]})
-    li = xbmcgui.ListItem(product["title"], iconImage=product["logo"], thumbnailImage=product["logo"])
-    xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
-    
+   
     
 def show_product(mediaId, productId):
   headers = "User-agent: stagefright/1.2 (Linux;Android 6.0)"
   product = getProductUrl(mediaId, productId)
   if not product["isAllowed"]:
+    dialog = xbmcgui.Dialog()
     dialog = dialog.ok("Грешка", product["errors"])
     return
   url = product["url"]
@@ -88,13 +86,12 @@ params = get_params()
 action = params.get("action")
 mediaId = params.get("mediaId")
 productId = params.get("productId")
+sectionId = params.get("sectionId")
 
 if not action:
 	show_sections()
-elif action == 'show_channels':
-	show_channels()
-elif action == 'show_live_sport':
-	show_live_sport()
+elif action == 'show_section':
+	show_section(sectionId)
 elif action == 'show_product':
 	show_product(mediaId, productId)
 
