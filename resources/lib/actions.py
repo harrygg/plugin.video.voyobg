@@ -102,24 +102,17 @@ def sectionProducts(sectionId, limit=21):
       items.append(item)
   return items
 
-def encryptKey(hash, productId):
+def encryptKey(hash, productId, mediaId):
   try:
-    t = base64.b64decode('eyJsaWMiOiVzLCJkZXYiOiVzLCJtZWQiOm1lZGlhSWQsInByb2QiOiVzfQ==') % (hash, settings.device_id, productId)
+    t = base64.b64decode('eyJtZWQiOiVzLCJsaWMiOiVzLCJwcm9kIjolcywiZGV2IjolcywiYWlkIjoiIn0=') % (mediaId, hash, productId, settings.device_id)
     log("raw: %s" % t)
     t = base64.b64encode(t)
-    i = 0
-    ij = ""
-    for c in t:
-      if i != 0 and i % 76 == 0:
-        ij += '\n'
-      ij += c
-      i += 1
-    log("injected key: %s" % ij)
-    return quote_plus(ij)
+    log("injected key: %s" % t)
+    return quote_plus(t)
   except:
     log("Error creating key", 4)
     return ""
-    
+
 def getProductUrl(mediaId, productId):
   batch = JsonBatch()
   rpc = JsonRpc(1)
@@ -145,7 +138,7 @@ def getProductUrl(mediaId, productId):
   log(res)
   
   url = res["mediaLocations"][0]["url"]
-  key = encryptKey(hash, productId)
+  key = encryptKey(hash, productId, mediaId)
   item["url"] = "%s?%s" % (url, key)
   item["isAllowed"] = True
   log("item[\"isAllowed\"]: %s" % item["isAllowed"])

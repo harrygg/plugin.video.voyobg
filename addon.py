@@ -5,6 +5,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from resources.lib.actions import *
+import uuid
 
 reload(sys)  
 sys.setdefaultencoding('utf8')
@@ -14,14 +15,20 @@ if not settings.configured:
   settings.configured = True
   
 if not settings.device_id or settings.device_id == "":
-  settings.device_id = get_unique_device_id()
+  settings.device_id = uuid.uuid4().hex 
 
 def show_sections():
   if not userLogin():
     xbmc.executebuiltin('Notification(%s,%s,5000,%s)' % ("Грешка", 'Неуспшно вписване', 'DefaultFolder.png'))
     return
-  
-  if not deviceIsRegistered():
+
+  have_to_change_id = False
+  if settings.device_id[:5] == 'KODI_':
+    deviceRemove(settings.deviceId)
+    settings.device_id = uuid.uuid4().hex
+    have_to_change_id = True
+
+  if not deviceIsRegistered() or have_to_change_id:
     errors = deviceRegister()
     if errors:
       dialog = xbmcgui.Dialog()
@@ -38,7 +45,7 @@ def show_sections():
           return
       else:
         return
-  
+
   url = make_url({"action":"show_channels"})
   li = xbmcgui.ListItem("ТВ Канали")
   xbmcplugin.addDirectoryItem(int(sys.argv[1]), url, li, True)
